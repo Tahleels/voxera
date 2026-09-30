@@ -38,7 +38,6 @@ function backendOrigin() {
 const backend = backendOrigin();
 
 const nextConfig = {
-  outputFileTracingRoot: here,
   async rewrites() {
     return [
       { source: "/api/:path*", destination: `${backend}/api/:path*` },
