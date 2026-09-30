@@ -195,20 +195,29 @@ export function EchoApp() {
         if (cancelled) return;
         setCaps(capabilities);
         setSessionId(id);
-        const s = await getState();
-        if (!cancelled) {
+        setAllCatalogProducts(catalog);
+
+        // Fetch the session state. The auth cookie was just set by the POST in
+        // ensureSessionId; if it hasn't propagated yet the first call can 401,
+        // so retry once. A transient failure here must not blank the whole app —
+        // products and demo mode still work — so it is best-effort, not fatal.
+        let s = await getState().catch(() => null);
+        if (!s) {
+          await new Promise((r) => setTimeout(r, 400));
+          s = await getState().catch(() => null);
+        }
+        if (!cancelled && s) {
           const freshState: EchoState = {
             ...s,
             recentProducts: [],
           };
           stateRef.current = freshState;
           setEchoState(freshState);
-          setAllCatalogProducts(catalog);
         }
       } catch {
         if (!cancelled)
           setNotice({
-            text: "I couldn't reach the shopping service. Start the backend with npm run dev:backend, then reload this page.",
+            text: "I couldn't reach the shopping service. Please reload the page.",
             tone: "error",
           });
       }
