@@ -3,5 +3,4 @@
   "outputDirectory": "frontend/.next",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- frontend/"
 }
