@@ -20,18 +20,12 @@ export const apiRateLimiter = rateLimit({
   max: RATE_LIMIT_MAX_REQUESTS,
   standardHeaders: true,
   legacyHeaders: false,
-  validate: { trustProxy: false },
   message: {
     error: true,
     code: "rate_limited",
     message: "Too many requests. Please slow down.",
   },
   skip: (req) => req.path === "/health",
-  keyGenerator: (req) => {
-    const auth = (req as any).auth;
-    if (auth?.sessionId) return `session:${auth.sessionId}`;
-    return req.ip ?? req.socket.remoteAddress ?? "unknown";
-  },
 });
 
 /**
@@ -42,16 +36,10 @@ export const strictRateLimiter = rateLimit({
   max: STRICT_MAX_REQUESTS,
   standardHeaders: true,
   legacyHeaders: false,
-  validate: { trustProxy: false },
   message: {
     error: true,
     code: "rate_limited",
     message: "Too many requests to this endpoint. Please wait a moment.",
-  },
-  keyGenerator: (req) => {
-    const auth = (req as any).auth;
-    if (auth?.sessionId) return `strict:session:${auth.sessionId}`;
-    return `strict:ip:${req.ip ?? req.socket.remoteAddress ?? "unknown"}`;
   },
 });
 
