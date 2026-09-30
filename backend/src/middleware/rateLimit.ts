@@ -20,18 +20,17 @@ export const apiRateLimiter = rateLimit({
   max: RATE_LIMIT_MAX_REQUESTS,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { trustProxy: false },
   message: {
     error: true,
     code: "rate_limited",
     message: "Too many requests. Please slow down.",
   },
-  // Don't rate limit health checks
   skip: (req) => req.path === "/health",
-  // Use a key based on IP + session if available
   keyGenerator: (req) => {
     const auth = (req as any).auth;
     if (auth?.sessionId) return `session:${auth.sessionId}`;
-    return req.ip || "unknown";
+    return req.ip ?? req.socket.remoteAddress ?? "unknown";
   },
 });
 
@@ -43,6 +42,7 @@ export const strictRateLimiter = rateLimit({
   max: STRICT_MAX_REQUESTS,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { trustProxy: false },
   message: {
     error: true,
     code: "rate_limited",
@@ -51,7 +51,7 @@ export const strictRateLimiter = rateLimit({
   keyGenerator: (req) => {
     const auth = (req as any).auth;
     if (auth?.sessionId) return `strict:session:${auth.sessionId}`;
-    return `strict:ip:${req.ip || "unknown"}`;
+    return `strict:ip:${req.ip ?? req.socket.remoteAddress ?? "unknown"}`;
   },
 });
 
