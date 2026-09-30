@@ -38,6 +38,12 @@ function backendOrigin() {
 const backend = backendOrigin();
 
 const nextConfig = {
+  // Resolve the "@/*" alias explicitly. Vercel's workspace install hoists deps
+  // and the tsconfig-paths pickup becomes unreliable there, so pin it here.
+  webpack: (config) => {
+    config.resolve.alias["@"] = path.resolve(here, "src");
+    return config;
+  },
   async rewrites() {
     return [
       { source: "/api/:path*", destination: `${backend}/api/:path*` },
