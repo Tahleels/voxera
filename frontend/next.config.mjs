@@ -22,6 +22,12 @@ function backendOrigin() {
   const fromEnv = process.env.BACKEND_ORIGIN?.trim();
   if (fromEnv) return fromEnv.replace(/\/+$/, "");
 
+  // Deployed on Railway and BACKEND_ORIGIN wasn't set in this env — use the
+  // known production backend URL instead of a useless localhost fallback.
+  if (process.env.RAILWAY_ENVIRONMENT_NAME || process.env.NODE_ENV === "production") {
+    return "https://echolabs-backend-production.up.railway.app";
+  }
+
   let port = process.env.BACKEND_PORT?.trim();
   if (!port) {
     try {
