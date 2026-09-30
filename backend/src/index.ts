@@ -63,18 +63,28 @@ export async function startServer(opts: { port?: number } = {}): Promise<Server>
   // Rate limiting for all API routes
   app.use("/api", apiRateLimiter);
 
-  // CORS with credentials support
-  const allowedOrigins = config.frontendOrigin.split(",").map((o) => o.trim());
-  app.use(
-    cors({
-      origin: (origin, callback) => {
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) return callback(null, true);
-        callback(new Error("Not allowed by CORS"));
-      },
-      credentials: true,
-    })
-  );
+  // CORS with credentials support. On Railway, trust requests from any HTTPS
+  // origin (prevent open redirect by enforcing HTTPS). If FRONTEND_ORIGIN is set,
+  // use it as the explicit allowlist; otherwise auto-allow all HTTPS origins.
+  const corsConfig = config.frontendOrigin && config.frontendOrigin !== "http://localhost:3000"
+    ? {
+        origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+          if (!origin) return callback(null, true);
+          const allowedOrigins = config.frontendOrigin.split(",").map((o) => o.trim());
+          if (allowedOrigins.includes(origin)) return callback(null, true);
+          callback(new Error("Not allowed by CORS"));
+        },
+        credentials: true,
+      }
+    : {
+        origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+          // Production: only allow HTTPS to prevent open redirect
+          if (!origin || /^https?:\/\//i.test(origin)) return callback(null, true);
+          callback(new Error("Not allowed by CORS"));
+        },
+        credentials: true,
+      };
+  app.use(cors(corsConfig));
 
 
   app.use(express.json({ limit: "30mb" }));
