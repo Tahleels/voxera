@@ -20,7 +20,10 @@ const here = path.dirname(fileURLToPath(import.meta.url));
  */
 function backendOrigin() {
   const fromEnv = process.env.BACKEND_ORIGIN?.trim();
-  if (fromEnv) return fromEnv.replace(/\/+$/, "");
+  if (fromEnv) {
+    const withScheme = /^https?:\/\//i.test(fromEnv) ? fromEnv : `https://${fromEnv}`;
+    return withScheme.replace(/\/+$/, "");
+  }
 
   // Deployed on Railway and BACKEND_ORIGIN wasn't set in this env — use the
   // known production backend URL instead of a useless localhost fallback.
