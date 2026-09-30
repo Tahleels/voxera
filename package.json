@@ -17,6 +17,6 @@
     "verify:order": "npm run verify:order --workspace=backend"
   },
   "engines": {
-    "node": ">=20"
+    "node": "20.x"
   }
 }
